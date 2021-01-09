@@ -135,6 +135,7 @@ app.post('/reservar', auth,async (req, res, next) => {//creacion de la reserva
                     });
                     //si ha habido un error colocos las variables de error a true y aborto la reserva de hotel
                     if(conexionFallida){
+                        if(idHotel!=""){
                         Vuelo="conexion fallida al vuelo";
                         await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
                         method: 'DELETE',
@@ -144,11 +145,12 @@ app.post('/reservar', auth,async (req, res, next) => {//creacion de la reserva
 
                         Hotel="Reserva cancelada correctamente";
                         Vehiculo="Reserva cancelada correctamente";
+                    }
 
                     }else if(Vuelo.mensaje=="El vuelo no esta disponible"){
                         reservaFallida=true;
                         Vuelo=Vuelo.mensaje;
-
+                        if(idHotel!=""){
                         await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
                         method: 'DELETE',
                         body: JSON.stringify(req.body), 
@@ -156,6 +158,7 @@ app.post('/reservar', auth,async (req, res, next) => {//creacion de la reserva
                         }); 
                         Hotel="Reserva cancelada correctamente";
                         Vehiculo="Reserva cancelada correctamente";
+                        }
                     }
 
                     
@@ -175,12 +178,15 @@ app.post('/reservar', auth,async (req, res, next) => {//creacion de la reserva
                     //si ha habido un error colocos las variables de error a true y aborto la reserva de hotel y vuelo
                     if(conexionFallida){
                         Vehiculo="conexion fallida al vuelo";
-
+                        if(idHotel!=""){
                         await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
                             method: 'DELETE',
                             body: JSON.stringify(req.body), 
                             headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
                             }); 
+                            Hotel="Reserva cancelada correctamente";
+                        }
+                        if(idVuelo!=""){
                         await fetch(`https://localhost:3000/api/reserva/${idVuelo}`,{
                             method: 'DELETE',
                             body: JSON.stringify(req.body), 
@@ -188,26 +194,31 @@ app.post('/reservar', auth,async (req, res, next) => {//creacion de la reserva
 
                             }); 
                             Vuelo="Reserva cancelada correctamente";
-                            Hotel="Reserva cancelada correctamente";
+                        }
+                            
                             
 
 
                     }else if(Vehiculo.mensaje=="El vehiculo no esta disponible"){
                         reservaFallida=true;
                         Vehiculo=Vehiculo.mensaje;
-
+                        if(idHotel!=""){
                         await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
                             method: 'DELETE',
                             body: JSON.stringify(req.body), 
                             headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
                             });
+                            Hotel="Reserva cancelada correctamente";
+                        }
+                        if(idVuelo!=""){
                         await fetch(`https://localhost:3000/api/reserva/${idVuelo}`,{
                             method: 'DELETE',
                             body: JSON.stringify(req.body), 
                             headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
                             }); 
                             Vuelo="Reserva cancelada correctamente";
-                            Hotel="Reserva cancelada correctamente";
+                        }
+                            
                             
                     }
                     
@@ -249,52 +260,158 @@ app.delete('/cancelar',auth, async (req, res, next) => {//cancela reservas
     const idVuelo=req.body.idVuelo;
     const idVehiculo=req.body.idVehiculo;
     
+    var Pago;
     var Hotel="";
     var Vuelo="";
     var Vehiculo="";
+    var conexionFallida=false;
+    var cancelacionFallida=false;
     
     if(usuario!=""){//si poseo el usuario
-
-        
-        if(idHotel!=""){
-
-            await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{//si tengo un hotel cancelo
-                method: 'DELETE',
-                body: JSON.stringify(req.body), 
+        Pago=await fetch(`https://localhost:3040/pago`,{//obtengo la respuesta del banco
+                method: 'GET',
                 headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
-                    Hotel = Object.assign({}, json);
-                    return Hotel;
-                }); 
-        }
-        
-        if(idVuelo!=""){
+                    Pago = Object.assign({}, json);
+                    return Pago;
+                });
+        if(Pago.pago=='true'){
+            if(idHotel!=""){
 
-            await fetch(`https://localhost:3000/api/reserva/${idVuelo}`,{//si tengo un vuelo cancelo
-                method: 'DELETE',
-                body: JSON.stringify(req.body), 
-                headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
-                    Vuelo = Object.assign({}, json);
-                    return Vuelo;
-                }); 
+                await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{//si tengo un hotel cancelo
+                    method: 'DELETE',
+                    body: JSON.stringify(req.body), 
+                    headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                        Hotel = Object.assign({}, json);
+                        return Hotel;
+                    }).catch(function(err){
+                        conexionFallida=true;
+                        return err;
+                    });
+                    if(conexionFallida){
+                        Hotel="conexion fallida al hotel";
+                        Vuelo="Cancelacion cancelada correctamente";
+                        Vehiculo="Cancelacion cancelada correctamente";
+                    }else if(Hotel.mensaje=="El hotel no estaba reservado previamente"){
+                        cancelacionFallida=true;
+                        Hotel=Hotel.mensaje;
+                        Vuelo="Cancelacion cancelada correctamente";
+                        Vehiculo="Cancelacion cancelada correctamente";
+                    }
+            }
+            
+            if(idVuelo!=""){
+
+                await fetch(`https://localhost:3000/api/reserva/${idVuelo}`,{//si tengo un vuelo cancelo
+                    method: 'DELETE',
+                    body: JSON.stringify(req.body), 
+                    headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                        Vuelo = Object.assign({}, json);
+                        return Vuelo;
+                    }).catch(function(err){
+                        conexionFallida=true;
+                        return err;
+                    });
+                    //si ha habido un error colocos las variables de error a true y aborto la cancelacion de hotel
+                    if(conexionFallida){
+                        Vuelo="conexion fallida al vuelo";
+                        if(idHotel!=""){
+                        await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
+                        method: 'PUT',
+                        body: JSON.stringify(req.body), 
+                        headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                        }); 
+
+                        Hotel="Cancelacion cancelada correctamente";
+                        Vehiculo="Cancelacion cancelada correctamente";
+                    }
+
+                    }else if(Vuelo.mensaje=="El vuelo no estaba reservado previamente"){
+                        reservaFallida=true;
+                        Vuelo=Vuelo.mensaje;
+                        if(idHotel!=""){
+                        await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
+                        method: 'PUT',
+                        body: JSON.stringify(req.body), 
+                        headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                        }); 
+                        Hotel="Cancelacion cancelada correctamente";
+                        Vehiculo="Cancelacion cancelada correctamente";
+                    }
+                    } 
+
+            }
+            
+            if(idVehiculo!=""){//si tengo un vehiculo cancelo
+
+                await fetch(`https://localhost:3002/api/reserva/${idVehiculo}`,{
+                    method: 'DELETE',
+                    body: JSON.stringify(req.body), 
+                    headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                        Vehiculo = Object.assign({}, json);
+                        return Vehiculo;
+                    }).catch(function(err){
+                        conexionFallida=true;
+                        return err;
+                    });
+                    //si ha habido un error colocos las variables de error a true y aborto la cancelacion de hotel y vuelo
+                    if(conexionFallida){
+                        Vehiculo="conexion fallida al vuelo";
+                        if(idHotel!=""){
+                        await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
+                            method: 'PUT',
+                            body: JSON.stringify(req.body), 
+                            headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                            }); 
+                            Hotel="Cancelacion cancelada correctamente";
+                        }
+                        if(idVuelo!=""){
+                        await fetch(`https://localhost:3000/api/reserva/${idVuelo}`,{
+                            method: 'PUT',
+                            body: JSON.stringify(req.body), 
+                            headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+
+                            }); 
+                            Vuelo="Cancelacion cancelada correctamente";
+                        }
+                            
+                            
+
+
+                    }else if(Vehiculo.mensaje=="El vehiculo no esta disponible"){
+                        reservaFallida=true;
+                        Vehiculo=Vehiculo.mensaje;
+                        if(idHotel!=""){
+                        await fetch(`https://localhost:3001/api/reserva/${idHotel}`,{
+                            method: 'PUT',
+                            body: JSON.stringify(req.body), 
+                            headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                            });
+                            Hotel="Cancelacion cancelada correctamente";
+                        }
+                        if(idVuelo!=""){
+                        await fetch(`https://localhost:3000/api/reserva/${idVuelo}`,{
+                            method: 'PUT',
+                            body: JSON.stringify(req.body), 
+                            headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+                            }); 
+                            Vuelo="Cancelacion cancelada correctamente";
+                        }
+                            
+                            
+                    }
+            }
+            res.json({
+                Usuario:usuario,
+                Vuelo:Vuelo,
+                Hotel:Hotel,
+                Vehiculo:Vehiculo
+            });
+        }else{
+            res.json({
+                Pago:"ERROR al rembolsar, cancelacion cancelada"
+            });
 
         }
-        
-        if(idVehiculo!=""){//si tengo un vehiculo cancelo
-
-            await fetch(`https://localhost:3002/api/reserva/${idVehiculo}`,{
-                method: 'DELETE',
-                body: JSON.stringify(req.body), 
-                headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
-                    Vehiculo = Object.assign({}, json);
-                    return Vehiculo;
-                }); 
-        }
-        res.json({
-            Usuario:usuario,
-            Vuelo:Vuelo,
-            Hotel:Hotel,
-            Vehiculo:Vehiculo
-        });
     }
 });
 

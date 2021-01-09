@@ -19,7 +19,7 @@ const bcrypt=require("bcrypt");
 const { restart } = require('nodemon');
 const tokenService=require('./services/token.service');
 const helmet = require("helmet");
-app.use(helmet());
+
 const opciones={
     key:fs.readFileSync('./cert/key.pem'),
     cert:fs.readFileSync('./cert/cert.pem')
@@ -30,7 +30,7 @@ const Contraseña=require('./services/pass.service');
 
 
 const app = express();
-
+app.use(helmet());
 var db = mongojs("mongodb+srv://fran:fqOZ39V1T0kItdyz@cluster0.biqs9.mongodb.net/usuarios?retryWrites=true&w=majority"); // Enlazamos con la DB "Atlas"
 var id = mongojs.ObjectID; // Función para convertir un id textual en un objectID
 
