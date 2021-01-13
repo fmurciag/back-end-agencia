@@ -61,6 +61,47 @@ app.use(express.json()) // parse application/json
 // routes
 
 
+
+app.get('/hoteles', auth,(req, res, next) =>{
+    const queToken=req.headers.authorization.split(" ")[1];
+    fetch(`https://localhost:3001/api/ofertas`,{
+        method: 'GET',
+        headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+            res.json({
+                Hoteles:json
+            });
+        }); 
+});
+
+app.get('/vuelos', auth,(req, res, next) =>{
+    const queToken=req.headers.authorization.split(" ")[1];
+    fetch(`https://localhost:3000/api/ofertas`,{
+        method: 'GET',
+        headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+            res.json({
+                Vuelos:json
+            });
+        }); 
+});
+
+app.get('/vehiculos', auth,(req, res, next) =>{
+    const queToken=req.headers.authorization.split(" ")[1];
+    fetch(`https://localhost:3002/api/ofertas`,{
+        method: 'GET',
+        headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
+            res.json({
+                Vehiculos:json
+            });
+        }); 
+});
+
+
+
+
+
+
+
+
 /**
  * realiza una reserva
  * campos:

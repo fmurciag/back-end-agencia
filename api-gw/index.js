@@ -15,6 +15,12 @@ const opciones={
 const app = express();
 
 const tokenService=require('./services/token.service');
+
+const ipTrans="https://localhost:3200";
+const ipReg="https://localhost:3050";
+
+
+
 function auth(req, res, next) {
     if (!req.headers.authorization){ //Mirar si en la cabecera hay un token.
         res.status(403).json({
@@ -57,7 +63,7 @@ app.use(express.json()) // parse application/json
  */
 app.get('/vuelos', auth,(req, res, next) =>{
     const queToken=req.headers.authorization.split(" ")[1];
-    fetch(`https://localhost:3000/api/ofertas`,{
+    fetch(`${ipTrans}/vuelos`,{
         method: 'GET',
         headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
             res.json({
@@ -70,7 +76,7 @@ app.get('/vuelos', auth,(req, res, next) =>{
  */
 app.get('/hoteles', auth,(req, res, next) =>{
     const queToken=req.headers.authorization.split(" ")[1];
-    fetch(`https://localhost:3001/api/ofertas`,{
+    fetch(`${ipTrans}/hoteles`,{
         method: 'GET',
         headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
             res.json({
@@ -83,7 +89,7 @@ app.get('/hoteles', auth,(req, res, next) =>{
  */
 app.get('/vehiculos', auth,(req, res, next) =>{
     const queToken=req.headers.authorization.split(" ")[1];
-    fetch(`https://localhost:3002/api/ofertas`,{
+    fetch(`${ipTrans}/vehiculos`,{
         method: 'GET',
         headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
             res.json({
@@ -99,7 +105,7 @@ app.get('/vehiculos', auth,(req, res, next) =>{
  * contraseña
  */
 app.post('/registro',(req, res, next) =>{
-    fetch(`https://localhost:3050/registro`,{
+    fetch(`${ipReg}/registro`,{
         method: 'POST',
         body: JSON.stringify(req.body), 
         headers: {'Content-Type': 'application/json'}}).then(res => res.json()).then(json => {
@@ -115,7 +121,7 @@ app.post('/registro',(req, res, next) =>{
  * contraseña
  */
 app.post('/login',(req, res, next) =>{
-    fetch(`https://localhost:3050/login`,{
+    fetch(`${ipReg}login`,{
         method: 'POST',
         body: JSON.stringify(req.body), 
         headers: {'Content-Type': 'application/json'}}).then(res => res.json()).then(json => {
@@ -134,7 +140,7 @@ app.post('/login',(req, res, next) =>{
  */
 app.post('/reservar', auth,(req, res, next) =>{
     const queToken=req.headers.authorization.split(" ")[1];
-    fetch(`https://localhost:3200/reservar`,{
+    fetch(`${ipTrans}/reservar`,{
         method: 'POST',
         body: JSON.stringify(req.body), 
         headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
@@ -153,7 +159,7 @@ app.post('/reservar', auth,(req, res, next) =>{
  */
 app.delete('/cancelar', auth,(req, res, next) =>{
     const queToken=req.headers.authorization.split(" ")[1];
-    fetch(`https://localhost:3200/cancelar`,{
+    fetch(`${ipTrans}/cancelar`,{
         method: 'DELETE',
         body: JSON.stringify(req.body), 
         headers: {'Content-Type': 'application/json','Authorization': `Bearer ${queToken}`}}).then(res => res.json()).then(json => {
