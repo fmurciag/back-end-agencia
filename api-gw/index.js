@@ -121,7 +121,7 @@ app.post('/registro',(req, res, next) =>{
  * contraseña
  */
 app.post('/login',(req, res, next) =>{
-    fetch(`${ipReg}login`,{
+    fetch(`${ipReg}/login`,{
         method: 'POST',
         body: JSON.stringify(req.body), 
         headers: {'Content-Type': 'application/json'}}).then(res => res.json()).then(json => {
